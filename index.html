@@ -156,7 +156,8 @@
           if(e.target.className == "removeButton") {
             var data = e.target.dataset,
                 model  = document.getElementById('expenses').model;
-            delete model.items[data.id];
+            model.items.splice(data.id, 1);
+
             document.getElementById('expenses').model = model;
             expensesTotalCalc();
           };
