@@ -158,6 +158,8 @@
                 model  = document.getElementById('expenses').model;
             model.items.splice(data.id, 1);
 
+            localStorage.setItem( 'items', JSON.stringify(model.items) );
+
             document.getElementById('expenses').model = model;
             expensesTotalCalc();
           };
