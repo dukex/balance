@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Balance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <script src="/components/platform/platform.js"></script>
+
+
+  <link rel="import" href="/components/paper-input/paper-input.html">
+  <link rel="import" href="/components/core-icon-button/core-icon-button.html">
+
+  <style shim-shadowdom>
+
+    body {
+      font-family: RobotoDraft, 'Helvetica Neue', Helvetica, Arial;
+      margin: 0;
+      padding: 24px;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
+      -webkit-touch-callout: none;
+    }
+
+    paper-input {
+      width: 10em;
+      float: left;
+    }
+
+    paper-input#income {
+      width: 20em;
+      margin-top: 25px;
+    }
+
+    .expenses-item {
+      margin-bottom: 25px;
+      width: 320px;
+      border-bottom: 1px solid #333;
+    }
+
+    core-icon-button[icon="remove"] {
+      fill: red;
+    }
+
+    .value, .title {
+      float: left;
+      line-height: 48px;
+    }
+
+    .value {
+      width: 150px;
+      font-family: monospace;
+      font-size: 14px;
+    }
+
+    .title {
+      width: 125px;
+      font-weight: 700;
+    }
+
+    .title.small {
+      font-size: 12px;
+    }
+
+  </style>
+</head>
+<body unresolved touch-action="auto">
+    <div layout horizontal wrap class="content" style="width: 420px">
+      <template id="expenses" repeat="{{ items }}">
+        <div class="expenses-item">
+          <div class="value">R$ {{value}}</div>
+          <div class="title small">{{title}}</div>
+          <core-icon-button icon="remove" id="addButton"></core-icon-button>
+        </div>
+      </template>
+
+      <paper-input floatingLabel label="Expense Value" validate="^[0-9.]*$" error="Input is not a number!"  id="newValue"></paper-input>
+      <paper-input floatingLabel label="Expense Title" id="newTitle"></paper-input>
+      <core-icon-button icon="add" id="addButton"></core-icon-button>
+
+
+      <template id="totalExpenses" bind if="{{ totalAccount }}">
+        <span class="value">R$ {{totalAccount}}</span>
+         <div class="title">Total Expenses</div>
+      </template>
+
+      <paper-input floatingLabel validate="^[0-9.]*$" error="Input is not a number!" label="Income" id="income"></paper-input>
+
+      <template id="liquid" bind if="{{ totalLiquid }}">
+        <span class="value">R$ {{totalLiquid}}</span>
+         <div class="title"></div>
+      </template>
+    </div>
+
+    <script>
+      document.addEventListener('polymer-ready', function() {
+        var addButton = document.getElementById('addButton'),
+            income    = document.getElementById('income');
+
+        document.getElementById('expenses').model = {items: []};
+        document.getElementById('totalExpenses').model = { totalAccount: 0 };
+
+        addButton.addEventListener('click', function() {
+          var _value = document.getElementById('newValue'),
+              title  = document.getElementById('newTitle'),
+              model  = document.getElementById('expenses').model;
+
+          model.items.push({title: title.value, value: _value.value});
+          document.getElementById('expenses').model = model;
+
+          expensesTotalCalc();
+
+          title.value = "";
+          _value.value = "";
+          window.focus();
+        });
+
+        income.addEventListener('change', function() {
+          var totalExpenses = document.getElementById('totalExpenses').model.totalAccount,
+              incomeValue = income.value,
+              liquid = Math.round10(incomeValue-totalExpenses, -2);
+
+          document.getElementById('liquid').model = {totalLiquid: liquid};
+        });
+
+        var expensesTotalCalc = function() {
+          var model  = document.getElementById('expenses').model,
+              values = model.items.map(function(c) {
+                                          return parseFloat(c.value)
+                                       });
+          var total = values.reduce(function(p, n, _, _) {
+            return p + n;
+          });
+
+          document.getElementById('totalExpenses').model = { totalAccount: Math.round10(total, -2) };
+          income.fire("change");
+        }
+      });
+
+      (function(){
+        /**
+         * Decimal adjustment of a number.
+         *
+         * @param {String}  type  The type of adjustment.
+         * @param {Number}  value The number.
+         * @param {Integer} exp   The exponent (the 10 logarithm of the adjustment base).
+         * @returns {Number}      The adjusted value.
+         */
+        function decimalAdjust(type, value, exp) {
+          // If the exp is undefined or zero...
+          if (typeof exp === 'undefined' || +exp === 0) {
+            return Math[type](value);
+          }
+          value = +value;
+          exp = +exp;
+          // If the value is not a number or the exp is not an integer...
+          if (isNaN(value) || !(typeof exp === 'number' && exp % 1 === 0)) {
+            return NaN;
+          }
+          // Shift
+          value = value.toString().split('e');
+          value = Math[type](+(value[0] + 'e' + (value[1] ? (+value[1] - exp) : -exp)));
+          // Shift back
+          value = value.toString().split('e');
+          return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
+        }
+
+        // Decimal round
+        if (!Math.round10) {
+          Math.round10 = function(value, exp) {
+            return decimalAdjust('round', value, exp);
+          };
+        }
+        // Decimal floor
+        if (!Math.floor10) {
+          Math.floor10 = function(value, exp) {
+            return decimalAdjust('floor', value, exp);
+          };
+        }
+        // Decimal ceil
+        if (!Math.ceil10) {
+          Math.ceil10 = function(value, exp) {
+            return decimalAdjust('ceil', value, exp);
+          };
+        }
+      })();
+    </script>
+</body>
+</html>
