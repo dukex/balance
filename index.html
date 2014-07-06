@@ -133,13 +133,18 @@
 
         var expensesTotalCalc = function() {
           var model  = document.getElementById('expenses').model,
-              values = model.items.map(function(c) {
+              items = model.items.map(function(c) {
                                           return parseFloat(c.value)
-                                       });
-          var total = values.reduce(function(p, n, _, _) {
-            return p + n;
-          });
+                                       }),
+              total;
 
+          if (items.length > 0) {
+            total = items.reduce(function(p, n, _, _) {
+              return p + n;
+            });
+          } else {
+            total = 0
+          }
 
           document.getElementById('totalExpenses').model = { totalAccount: Math.round10(total, -2) };
           income.fire("change");
