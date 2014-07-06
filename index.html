@@ -99,8 +99,11 @@
         var addButton = document.getElementById('addButton'),
             income    = document.getElementById('income');
 
-        document.getElementById('expenses').model = {items: []};
+        document.getElementById('expenses').model = {items: JSON.parse( localStorage.getItem( 'items' ) )||[]};
         document.getElementById('totalExpenses').model = { totalAccount: 0 };
+
+        income.value = localStorage.getItem( 'income' );
+
 
         addButton.addEventListener('click', function() {
           var _value = document.getElementById('newValue'),
@@ -108,6 +111,8 @@
               model  = document.getElementById('expenses').model;
 
           model.items.push({title: title.value, value: _value.value, id: model.items.length});
+
+          localStorage.setItem( 'items', JSON.stringify(model.items) );
           document.getElementById('expenses').model = model;
 
           expensesTotalCalc();
@@ -121,6 +126,8 @@
               incomeValue = income.value,
               liquid = Math.round10(incomeValue-totalExpenses, -2);
 
+          localStorage.setItem( 'income', incomeValue );
+
           document.getElementById('liquid').model = {totalLiquid: liquid};
         });
 
@@ -133,10 +140,12 @@
             return p + n;
           });
 
+
           document.getElementById('totalExpenses').model = { totalAccount: Math.round10(total, -2) };
           income.fire("change");
         }
 
+        expensesTotalCalc();
 
         document.addEventListener('click', function(e) {
           if(e.target.className == "removeButton") {
