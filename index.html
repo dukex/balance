@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
   <script src="components/platform/platform.js"></script>
+  <script src="components/underscore/underscore.js"></script>
 
 
   <link rel="import" href="components/paper-input/paper-input.html">
@@ -155,8 +156,10 @@
         document.addEventListener('click', function(e) {
           if(e.target.className == "removeButton") {
             var data = e.target.dataset,
-                model  = document.getElementById('expenses').model;
-            model.items.splice(data.id, 1);
+                model  = document.getElementById('expenses').model,
+                item = _.findWhere(model.items, {id: data.id});
+                index = _.indexOf(model.items, item);
+            model.items.splice(index, 1);
 
             localStorage.setItem( 'items', JSON.stringify(model.items) );
 
