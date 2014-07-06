@@ -72,7 +72,7 @@
         <div class="expenses-item">
           <div class="value">R$ {{value}}</div>
           <div class="title small">{{title}}</div>
-          <core-icon-button icon="remove" id="addButton"></core-icon-button>
+          <core-icon-button data-id="{{id}}" icon="remove" class="removeButton"></core-icon-button>
         </div>
       </template>
 
@@ -107,14 +107,13 @@
               title  = document.getElementById('newTitle'),
               model  = document.getElementById('expenses').model;
 
-          model.items.push({title: title.value, value: _value.value});
+          model.items.push({title: title.value, value: _value.value, id: model.items.length});
           document.getElementById('expenses').model = model;
 
           expensesTotalCalc();
 
           title.value = "";
           _value.value = "";
-          window.focus();
         });
 
         income.addEventListener('change', function() {
@@ -137,6 +136,17 @@
           document.getElementById('totalExpenses').model = { totalAccount: Math.round10(total, -2) };
           income.fire("change");
         }
+
+
+        document.addEventListener('click', function(e) {
+          if(e.target.className == "removeButton") {
+            var data = e.target.dataset,
+                model  = document.getElementById('expenses').model;
+            delete model.items[data.id];
+            document.getElementById('expenses').model = model;
+            expensesTotalCalc();
+          };
+        });
       });
 
       (function(){
